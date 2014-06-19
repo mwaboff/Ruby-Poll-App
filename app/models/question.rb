@@ -25,4 +25,17 @@ class Question < ActiveRecord::Base
   )
   
   validates :body, :poll_id, presence: true
+  
+  def results
+    result_hash = {}
+    Question.joins(:answer_choices)
+    .joins("LEFT OUTER JOIN responses ON answer_choices.id = responses.answer_choice_id")
+    .group('answer_choices.id')
+    .select('answer_choices.body AS rbody, COUNT(responses.answer_choice_id) AS rcount')
+    .where('questions.id = ?', id).each do |question|
+      result_hash[question.rbody] = question.rcount
+    end
+    
+    result_hash
+  end
 end
